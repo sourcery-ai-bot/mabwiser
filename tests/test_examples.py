@@ -356,10 +356,7 @@ class ExampleTest(BaseTest):
 
         def binarize(decision, reward):
 
-            if decision == 0:
-                return reward <= 50
-            else:
-                return reward >= 220
+            return reward <= 50 if decision == 0 else reward >= 220
 
         n_jobs = 1
         contextual_mabs = [('Random', MAB([0, 1], LearningPolicy.Random(), NeighborhoodPolicy.Radius(10),
@@ -387,10 +384,7 @@ class ExampleTest(BaseTest):
 
         def binarize(decision, reward):
 
-            if decision == 0:
-                return reward <= 50
-            else:
-                return reward >= 220
+            return reward <= 50 if decision == 0 else reward >= 220
 
         n_jobs = 1
         context_free_mabs = [('Random', MAB([0, 1], LearningPolicy.Random(), n_jobs=n_jobs)),
@@ -433,12 +427,18 @@ class ExampleTest(BaseTest):
         contexts = [[random.random() for _ in range(50)] for _ in range(size)]
 
         n_jobs = 1
-        hyper_parameter_tuning = []
-        for radius in range(6, 10):
-            hyper_parameter_tuning.append(('Radius' + str(radius),
-                                           MAB([0, 1], LearningPolicy.UCB1(1), NeighborhoodPolicy.Radius(radius),
-                                               n_jobs=n_jobs)))
-
+        hyper_parameter_tuning = [
+            (
+                f'Radius{str(radius)}',
+                MAB(
+                    [0, 1],
+                    LearningPolicy.UCB1(1),
+                    NeighborhoodPolicy.Radius(radius),
+                    n_jobs=n_jobs,
+                ),
+            )
+            for radius in range(6, 10)
+        ]
         sim = Simulator(hyper_parameter_tuning, decisions, rewards, contexts,
                         scaler=StandardScaler(), test_size=0.5, is_ordered=False, batch_size=0, seed=123456,
                         is_quick=True)

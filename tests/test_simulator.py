@@ -167,12 +167,10 @@ class TestSimulator(unittest.TestCase):
         self.assertTrue('total' in sim.bandit_to_arm_to_stats_max['0'].keys())
 
     def test_context_free_offline(self):
-        bandits = []
-        counter = 0
-        for lp in TestSimulator.lps:
-            bandits.append((str(counter), MAB([0, 1], lp)))
-            counter += 1
-
+        bandits = [
+            (str(counter), MAB([0, 1], lp))
+            for counter, lp in enumerate(TestSimulator.lps)
+        ]
         rng = np.random.RandomState(seed=7)
 
         sim = Simulator(bandits=bandits,
@@ -183,12 +181,10 @@ class TestSimulator(unittest.TestCase):
                         is_ordered=True, seed=7)
 
     def test_context_free_offline_run(self):
-        bandits = []
-        counter = 0
-        for lp in TestSimulator.lps:
-            bandits.append((str(counter), MAB([0, 1], lp)))
-            counter += 1
-
+        bandits = [
+            (str(counter), MAB([0, 1], lp))
+            for counter, lp in enumerate(TestSimulator.lps)
+        ]
         rng = np.random.RandomState(seed=7)
 
         sim = Simulator(bandits=bandits,
@@ -202,12 +198,10 @@ class TestSimulator(unittest.TestCase):
         self.assertTrue(bool(sim.bandit_to_predictions))
 
     def test_context_free_offline_run_n_jobs(self):
-        bandits = []
-        counter = 0
-        for lp in TestSimulator.lps:
-            bandits.append((str(counter), MAB([0, 1], lp, n_jobs=2)))
-            counter += 1
-
+        bandits = [
+            (str(counter), MAB([0, 1], lp, n_jobs=2))
+            for counter, lp in enumerate(TestSimulator.lps)
+        ]
         rng = np.random.RandomState(seed=7)
 
         sim = Simulator(bandits=bandits,
@@ -222,12 +216,10 @@ class TestSimulator(unittest.TestCase):
         self.assertTrue(bool(sim.bandit_to_predictions))
 
     def test_context_free_online(self):
-        bandits = []
-        counter = 0
-        for lp in TestSimulator.lps:
-            bandits.append((str(counter), MAB([0, 1], lp)))
-            counter += 1
-
+        bandits = [
+            (str(counter), MAB([0, 1], lp))
+            for counter, lp in enumerate(TestSimulator.lps)
+        ]
         rng = np.random.RandomState(seed=7)
 
         sim = Simulator(bandits=bandits,
@@ -344,12 +336,10 @@ class TestSimulator(unittest.TestCase):
         self.assertTrue('total' in sim.bandit_to_arm_to_stats_max['0'].keys())
 
     def test_context_free_unordered(self):
-        bandits = []
-        counter = 0
-        for lp in TestSimulator.lps:
-            bandits.append((str(counter), MAB([0, 1], lp)))
-            counter += 1
-
+        bandits = [
+            (str(counter), MAB([0, 1], lp))
+            for counter, lp in enumerate(TestSimulator.lps)
+        ]
         rng = np.random.RandomState(seed=7)
 
         sim = Simulator(bandits=bandits,
@@ -363,12 +353,10 @@ class TestSimulator(unittest.TestCase):
         self.assertTrue(bool(sim.bandit_to_predictions))
 
     def test_context_free_unordered_online(self):
-        bandits = []
-        counter = 0
-        for lp in TestSimulator.lps:
-            bandits.append((str(counter), MAB([0, 1], lp)))
-            counter += 1
-
+        bandits = [
+            (str(counter), MAB([0, 1], lp))
+            for counter, lp in enumerate(TestSimulator.lps)
+        ]
         rng = np.random.RandomState(seed=7)
 
         sim = Simulator(bandits=bandits,
@@ -970,10 +958,7 @@ class TestSimulator(unittest.TestCase):
 
         def binarize(decision, reward):
 
-            if decision == 0:
-                return reward <= 50
-            else:
-                return reward >= 220
+            return reward <= 50 if decision == 0 else reward >= 220
 
         bandits = [('0', MAB([0, 1], LearningPolicy.ThompsonSampling(binarize), NeighborhoodPolicy.Radius())),
                    ('1', MAB([0, 1], LearningPolicy.ThompsonSampling(binarize), NeighborhoodPolicy.KNearest()))]

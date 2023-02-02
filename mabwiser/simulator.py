@@ -82,7 +82,7 @@ def default_evaluator(arms: List[Arm], decisions: np.ndarray, rewards: np.ndarra
     # If decision and prediction matches each other, use the observed reward
     # If decision and prediction are different, use the given stat (e.g., mean) for the arm as the reward
 
-    arm_to_rewards = dict((arm, []) for arm in arms)
+    arm_to_rewards = {arm: [] for arm in arms}
     if nn:
         arm_to_stats, neighborhood_stats = arm_to_stats
     for index, predicted_arm in enumerate(predictions):
@@ -160,7 +160,7 @@ class _NeighborsSimulator(_Neighbors):
                              for i in range(n_jobs))
 
         # Reduce
-        self.distances = list(chain.from_iterable(t for t in distances))
+        self.distances = list(chain.from_iterable(iter(distances)))
 
         return self.distances
 
@@ -288,11 +288,9 @@ class _RadiusSimulator(_NeighborsSimulator):
                 # Random arm (or nan expectations)
                 if is_predict:
                     prediction = self.arms[lp.rng.randint(0, len(self.arms))]
-                    predictions[index] = [prediction, {}, 0, {}]
-
                 else:
                     prediction = self.arm_to_expectation.copy()
-                    predictions[index] = [prediction, {}, 0, {}]
+                predictions[index] = [prediction, {}, 0, {}]
 
         # Return the list of predictions
         return predictions
@@ -589,7 +587,7 @@ class Simulator:
         self.logger.info("\t evaluator: " + str(self.evaluator))
         self.logger.info("\t seed: " + str(self.seed))
         self.logger.info("\t is_quick: " + str(self.is_quick))
-        self.logger.info("\t log_file: " + str(self.log_file))
+        self.logger.info("\t log_file: " + self.log_file)
         self.logger.info("\t format: " + self.log_format)
 
     # Public Methods
@@ -609,7 +607,7 @@ class Simulator:
         Arm_to_stats dictionary.
         Dictionary has the format {arm {'count', 'sum', 'min', 'max', 'mean', 'std'}}
         """
-        stats = dict((arm, {}) for arm in self.arms)
+        stats = {arm: {} for arm in self.arms}
         for arm in self.arms:
             indices = np.where(decisions == arm)
             if indices[0].shape[0] > 0:
@@ -646,13 +644,20 @@ class Simulator:
         """
         # Validate args
         check_true(isinstance(metric, str), TypeError('Metric must be a string.'))
-        check_true(metric in ['avg', 'min', 'max'], ValueError('Metric must be one of avg, min or max.'))
+        check_true(
+            metric in {'avg', 'min', 'max'},
+            ValueError('Metric must be one of avg, min or max.'),
+        )
         check_true(isinstance(is_per_arm, bool), TypeError('is_per_arm must be True or False.'))
 
         # Validate that simulation has been run
         complete = 'Complete simulation must be run before calling this method.'
-        check_true(bool(self.bandit_to_arm_to_stats_min),
-                   AssertionError('Descriptive statistics for predictions missing. ' + complete))
+        check_true(
+            bool(self.bandit_to_arm_to_stats_min),
+            AssertionError(
+                f'Descriptive statistics for predictions missing. {complete}'
+            ),
+        )
 
         if metric == 'avg':
             stats = self.bandit_to_arm_to_stats_avg
@@ -666,11 +671,11 @@ class Simulator:
             labels = {}
             mabs = []
 
-            if is_per_arm:
-                for mab_name, mab in self.bandits:
-                    self.logger.info('Plotting ' + str(mab_name))
+            for mab_name, mab in self.bandits:
+                self.logger.info(f'Plotting {str(mab_name)}')
+                if is_per_arm:
                     for arm in self.arms:
-                        mab_arm_name = str(mab_name) + '_' + str(arm)
+                        mab_arm_name = f'{str(mab_name)}_{str(arm)}'
                         mabs.append(mab_arm_name)
                         labels[mab_arm_name] = []
                         sums = []
@@ -686,10 +691,7 @@ class Simulator:
                         for item in sums:
                             cs += item
                             cu_sums[mab_arm_name].append(cs)
-            else:
-                for mab_name, mab in self.bandits:
-                    self.logger.info('Plotting ' + str(mab_name))
-
+                else:
                     mabs.append(mab_name)
                     labels[mab_name] = []
                     sums = []
@@ -700,12 +702,11 @@ class Simulator:
 
                             labels[mab_name].append(key)
 
-                            net = 0
-                            for arm in self.arms:
-                                if np.isnan(stats[mab_name][key][arm]['sum']):
-                                    continue
-
-                                net += stats[mab_name][key][arm]['sum']
+                            net = sum(
+                                stats[mab_name][key][arm]['sum']
+                                for arm in self.arms
+                                if not np.isnan(stats[mab_name][key][arm]['sum'])
+                            )
                             sums.append(net)
                     cs = 0
 
@@ -718,31 +719,26 @@ class Simulator:
                 sns.lineplot(x=x, y=cu_sums[mab], label=mab)
             plt.xlabel('Test Rows Predicted')
             plt.ylabel('Cumulative Reward')
-            plt.show()
-
         else:
             x_labels = []
             y_values = []
 
-            if is_per_arm:
-                for mab_name, mab in self.bandits:
+            for mab_name, mab in self.bandits:
+                if is_per_arm:
                     for arm in self.arms:
-                        x_labels.append(str(mab_name) + '_' + str(arm))
+                        x_labels.append(f'{str(mab_name)}_{str(arm)}')
                         y_values.append(stats[mab_name][arm]['sum'])
 
-            else:
-                for mab_name, mab in self.bandits:
+                else:
                     x_labels.append(mab_name)
-                    cumulative = 0
-                    for arm in self.arms:
-                        cumulative += stats[mab_name][arm]['sum']
+                    cumulative = sum(stats[mab_name][arm]['sum'] for arm in self.arms)
                     y_values.append(cumulative)
 
             plt.bar(x_labels, y_values)
             plt.xlabel('Bandit')
             plt.ylabel('Cumulative Reward')
             plt.xticks(rotation=45)
-            plt.show()
+        plt.show()
 
         plt.close('all')
 
@@ -768,10 +764,10 @@ class Simulator:
         self.logger.info("\n")
         self.logger.info("Train/Test Split")
         train_decisions, train_rewards, train_contexts, test_decisions, test_rewards, test_contexts = \
-            self._run_train_test_split()
+                self._run_train_test_split()
 
-        self.logger.info('Train size: ' + str(len(train_decisions)))
-        self.logger.info('Test size: ' + str(len(test_decisions)))
+        self.logger.info(f'Train size: {len(train_decisions)}')
+        self.logger.info(f'Test size: {len(test_decisions)}')
 
         #####################################
         # Scale the Data

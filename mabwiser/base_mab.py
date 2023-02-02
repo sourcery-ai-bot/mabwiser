@@ -168,7 +168,7 @@ class BaseMAB(metaclass=abc.ABCMeta):
                           for i in range(n_jobs))
 
         # Reduce
-        predictions = list(chain.from_iterable(t for t in predictions))
+        predictions = list(chain.from_iterable(iter(predictions)))
 
         return predictions if len(predictions) > 1 else predictions[0]
 

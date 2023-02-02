@@ -124,17 +124,15 @@ class _Radius(_Neighbors):
                 lp.fit(self.decisions[indices], self.rewards[indices], self.contexts[indices])
 
                 # Predict based on the neighbors
-                if is_predict:
-                    predictions[index] = lp.predict(row_2d)
-                else:
-                    predictions[index] = lp.predict_expectations(row_2d)
-
-            else:  # When there are no neighbors
-                # Random arm (or nan expectations)
-                if is_predict:
-                    predictions[index] = self.arms[lp.rng.randint(0, len(self.arms))]
-                else:
-                    predictions[index] = self.arm_to_expectation.copy()
+                predictions[index] = (
+                    lp.predict(row_2d)
+                    if is_predict
+                    else lp.predict_expectations(row_2d)
+                )
+            elif is_predict:
+                predictions[index] = self.arms[lp.rng.randint(0, len(self.arms))]
+            else:
+                predictions[index] = self.arm_to_expectation.copy()
 
         # Return the list of predictions
         return predictions

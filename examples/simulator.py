@@ -21,10 +21,7 @@ print('Starting simulation 1\n')
 
 def binarize(decision, reward):
 
-    if decision == 0:
-        return reward <= 50
-    else:
-        return reward >= 220
+    return reward <= 50 if decision == 0 else reward >= 220
 
 n_jobs=2
 contextual_mabs = [('Random', MAB([0, 1], LearningPolicy.Random(), NeighborhoodPolicy.Radius(10), n_jobs=n_jobs)),
@@ -44,12 +41,18 @@ context_free_mabs = [('Random', MAB([0, 1], LearningPolicy.Random(), n_jobs=n_jo
 mixed = [('RandomRadius', MAB([0, 1], LearningPolicy.Random(), NeighborhoodPolicy.Radius(10), n_jobs=n_jobs)),
           ('Random', MAB([0, 1], LearningPolicy.Random(), n_jobs=n_jobs))]
 
-hyper_parameter_tuning = []
-for radius in range(6, 10):
-    hyper_parameter_tuning.append(('Radius'+str(radius),
-                                  MAB([0, 1], LearningPolicy.UCB1(1), NeighborhoodPolicy.Radius(radius),
-                                      n_jobs=n_jobs)))
-
+hyper_parameter_tuning = [
+    (
+        f'Radius{str(radius)}',
+        MAB(
+            [0, 1],
+            LearningPolicy.UCB1(1),
+            NeighborhoodPolicy.Radius(radius),
+            n_jobs=n_jobs,
+        ),
+    )
+    for radius in range(6, 10)
+]
 ####################################
 # Contextual Simulation
 ####################################
@@ -62,7 +65,7 @@ sim.save_results()
 end = time()
 
 runtime = (end - start) / 60
-print('Complete', str(runtime) + ' minutes')
+print('Complete', f'{str(runtime)} minutes')
 print('\n')
 
 for mab_name, mab in sim.bandits:
@@ -88,7 +91,7 @@ sim.save_results()
 end = time()
 
 runtime = (end - start) / 60
-print('Complete', str(runtime) + ' minutes')
+print('Complete', f'{str(runtime)} minutes')
 print('\n')
 
 for mab_name, mab in sim.bandits:
@@ -114,7 +117,7 @@ sim.save_results()
 end = time()
 
 runtime = (end - start) / 60
-print('Complete', str(runtime) + ' minutes')
+print('Complete', f'{str(runtime)} minutes')
 print('\n')
 
 for mab_name, mab in sim.bandits:
@@ -142,7 +145,7 @@ sim.save_results()
 end = time()
 
 runtime = (end - start) / 60
-print('Complete', str(runtime) + ' minutes')
+print('Complete', f'{str(runtime)} minutes')
 print('\n')
 
 for mab_name, mab in sim.bandits:
@@ -169,7 +172,7 @@ sim.save_results()
 end = time()
 
 runtime = (end - start) / 60
-print('Complete', str(runtime) + ' minutes')
+print('Complete', f'{str(runtime)} minutes')
 print('\n')
 
 for mab_name, mab in sim.bandits:

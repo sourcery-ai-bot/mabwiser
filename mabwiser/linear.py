@@ -95,10 +95,14 @@ class _Linear(BaseMAB):
         self.num_features = None
 
         if arm_to_scaler is None:
-            arm_to_scaler = dict((arm, None) for arm in arms)
+            arm_to_scaler = {arm: None for arm in arms}
 
-        self.arm_to_model = dict((arm, _Linear.factory.get(regression)(rng, l2_lambda,
-                                                                       alpha, arm_to_scaler[arm])) for arm in arms)
+        self.arm_to_model = {
+            arm: _Linear.factory.get(regression)(
+                rng, l2_lambda, alpha, arm_to_scaler[arm]
+            )
+            for arm in arms
+        }
 
     def fit(self, decisions: np.ndarray, rewards: np.ndarray, contexts: np.ndarray = None) -> NoReturn:
 

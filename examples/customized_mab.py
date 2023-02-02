@@ -163,12 +163,15 @@ class LinUCBColdStart(_Linear):
         # Initialize the models for the untrained arms with the data from the most similar arm
         for arm in self.untrained_arms:
 
-            distances = {}
-            for n in self.arms:
-                if n not in self.untrained_arms:
-                    distances[n] = cdist(np.asarray([self.features[n]]), np.asarray([self.features[arm]]),
-                                         metric='cosine')
-
+            distances = {
+                n: cdist(
+                    np.asarray([self.features[n]]),
+                    np.asarray([self.features[arm]]),
+                    metric='cosine',
+                )
+                for n in self.arms
+                if n not in self.untrained_arms
+            }
             # Identify the closest arm
             closest_arm = min(distances, key=distances.get)
             print('Cold Start Arm:', arm, 'Closest arm:', closest_arm)

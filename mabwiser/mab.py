@@ -122,9 +122,14 @@ class LearningPolicy(NamedTuple):
 
         def _validate(self):
             check_true(isinstance(self.alpha, (int, float)), TypeError("Alpha must be an integer or float."))
-            check_true(0 <= self.alpha, ValueError("The value of alpha cannot be negative."))
+            check_true(
+                self.alpha >= 0, ValueError("The value of alpha cannot be negative.")
+            )
             check_true(isinstance(self.l2_lambda, (int, float)), TypeError("L2_norm must be an integer or float."))
-            check_true(0 <= self.l2_lambda, ValueError("The value of l2_lambda cannot be negative."))
+            check_true(
+                self.l2_lambda >= 0,
+                ValueError("The value of l2_lambda cannot be negative."),
+            )
             if self.arm_to_scaler is not None:
                 check_true(isinstance(self.arm_to_scaler, dict), TypeError("Arm_to_scaler must be a dictionary"))
 
@@ -183,7 +188,9 @@ class LearningPolicy(NamedTuple):
 
         def _validate(self):
             check_true(isinstance(self.tau, (int, float)), TypeError("Tau must be an integer or float."))
-            check_true(0 < self.tau, ValueError("The value of tau must be greater than zero."))
+            check_true(
+                self.tau > 0, ValueError("The value of tau must be greater than zero.")
+            )
 
     class ThompsonSampling(NamedTuple):
         """Thompson Sampling Learning Policy.
@@ -282,7 +289,9 @@ class LearningPolicy(NamedTuple):
 
         def _validate(self):
             check_true(isinstance(self.alpha, (int, float)), TypeError("Alpha must be an integer or float."))
-            check_true(0 <= self.alpha, ValueError("The value of alpha cannot be negative."))
+            check_true(
+                self.alpha >= 0, ValueError("The value of alpha cannot be negative.")
+            )
 
 
 class NeighborhoodPolicy(NamedTuple):
@@ -558,7 +567,10 @@ class MAB:
             lp = _Linear(self._rng, self.arms, self.n_jobs, learning_policy.l2_lambda,
                          learning_policy.alpha, "ucb", learning_policy.arm_to_scaler)
         else:
-            check_true(False, ValueError("Undefined learning policy " + str(learning_policy)))
+            check_true(
+                False,
+                ValueError(f"Undefined learning policy {str(learning_policy)}"),
+            )
 
         # Create the mab implementor
         if neighborhood_policy:
@@ -577,7 +589,12 @@ class MAB:
                 self._imp = _KNearest(self._rng, self.arms, self.n_jobs, lp,
                                       self.neighborhood_policy.k, self.neighborhood_policy.metric)
             else:
-                check_true(False, ValueError("Undefined context policy " + str(neighborhood_policy)))
+                check_true(
+                    False,
+                    ValueError(
+                        f"Undefined context policy {str(neighborhood_policy)}"
+                    ),
+                )
         else:
             self.is_contextual = isinstance(learning_policy, LearningPolicy.LinUCB)
             self._imp = lp
@@ -1005,26 +1022,24 @@ class MAB:
             is_called_from_fit = decisions is not None
 
             if is_called_from_fit:
-                if len(decisions) > 1:  # multiple decisions exists
-                    return np.asarray(contexts.values, order="C").reshape(-1, 1)  # go from 1D to 2D
-                else:  # single decision
-                    return np.asarray(contexts.values, order="C").reshape(1, -1)  # go from 1D to 2D
-
-            else:  # For predictions, compare the shape to the stored context history
-
-                if isinstance(self.learning_policy, LearningPolicy.LinUCB):
+                return (
+                    np.asarray(contexts.values, order="C").reshape(-1, 1)
+                    if len(decisions) > 1
+                    else np.asarray(contexts.values, order="C").reshape(1, -1)
+                )
+            if isinstance(self.learning_policy, LearningPolicy.LinUCB):
+                if isinstance(self._imp, _Linear):
                     first_arm = self.arms[0]
-                    if isinstance(self._imp, _Linear):
-                        num_features = self._imp.arm_to_model[first_arm].beta.size
-                    else:
-                        num_features = self._imp.contexts.shape[1]
+                    num_features = self._imp.arm_to_model[first_arm].beta.size
                 else:
                     num_features = self._imp.contexts.shape[1]
+            else:
+                num_features = self._imp.contexts.shape[1]
 
-                if num_features == 1:
-                    return np.asarray(contexts.values, order="C").reshape(-1, 1)  # go from 1D to 2D
-                else:
-                    return np.asarray(contexts.values, order="C").reshape(1, -1)  # go from 1D to 2D
+            if num_features == 1:
+                return np.asarray(contexts.values, order="C").reshape(-1, 1)  # go from 1D to 2D
+            else:
+                return np.asarray(contexts.values, order="C").reshape(1, -1)  # go from 1D to 2D
 
         else:
             raise NotImplementedError("Unsupported contexts data type")

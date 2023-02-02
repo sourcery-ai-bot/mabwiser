@@ -436,15 +436,9 @@ class ThompsonTest(BaseTest):
     def test_add_arm_new_function(self):
         def bin1(dec, reward):
             if dec == 0:
-                if reward > 50:
-                    return 1
-                else:
-                    return 0
+                return 1 if reward > 50 else 0
             elif dec == 1:
-                if reward < 20:
-                    return 1
-                else:
-                    return 0
+                return 1 if reward < 20 else 0
 
         arm, mab = self.predict(arms=[0, 1],
                                 decisions=[1, 0, 1, 1, 0],
@@ -459,20 +453,11 @@ class ThompsonTest(BaseTest):
 
         def bin2(dec, reward):
             if dec == 0:
-                if reward > 50:
-                    return 1
-                else:
-                    return 0
+                return 1 if reward > 50 else 0
             elif dec == 1:
-                if reward < 20:
-                    return 1
-                else:
-                    return 0
+                return 1 if reward < 20 else 0
             elif dec == 2:
-                if reward >= 1:
-                    return 1
-                else:
-                    return 0
+                return 1 if reward >= 1 else 0
 
         mab.add_arm(2, bin2)
 

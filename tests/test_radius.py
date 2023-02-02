@@ -224,7 +224,7 @@ class RadiusTest(BaseTest):
                                  num_run=1,
                                  is_predict=False)
 
-        for index, row in enumerate(exp):
+        for row in exp:
             for key in row.keys():
                 self.assertIs(np.nan, row[key])
 
@@ -243,7 +243,7 @@ class RadiusTest(BaseTest):
                                  num_run=1,
                                  is_predict=False)
 
-        for index, row in enumerate(exp):
+        for row in exp:
             for key in row.keys():
                 self.assertIs(np.nan, row[key])
 
